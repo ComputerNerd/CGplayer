@@ -39,14 +39,14 @@ typedef struct
 }FileMapping;
 
 //reset reading to start
-void ResetData(FileMapping *pMap)
+static void ResetData(FileMapping *pMap)
 {
 	pMap->miCurrentItem = 0;
 	pMap->miCurrentLength = 0;
 }
 
 //get pointer to next fragment of the file
-int GetNextData(FileMapping *pMap,int *piLength,unsigned char **ppBuffer)
+static int GetNextData(FileMapping *pMap,int *piLength,unsigned char **ppBuffer)
 {
 	unsigned char *pFlashFS = (unsigned char *)FLASH_START;
 	FileMappingItem *pItem = &(pMap->mTable[pMap->miCurrentItem]);
@@ -71,7 +71,7 @@ int GetNextData(FileMapping *pMap,int *piLength,unsigned char **ppBuffer)
 
 //I was able to use memcmp(), it compiled but it seems it returned always 0 
 // quick fix for now
-int Xmemcmp(const char *p1,const char *p2,int len)
+static int Xmemcmp(const char *p1,const char *p2,int len)
 {
 	while(len)
 	{
@@ -87,7 +87,7 @@ int Xmemcmp(const char *p1,const char *p2,int len)
 }
 
 
-int CreateFileMapping(const unsigned short *pFileName,FileMapping *pMap)
+static int CreateFileMapping(const unsigned short *pFileName,FileMapping *pMap)
 {
 	int iResult = 0;
 	char cBuffer[FLASH_PAGE_SIZE];
@@ -172,15 +172,11 @@ lbExit:
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //demo.wav
-const unsigned short NAME[] = {'\\','\\','f','l','s','0','\\','D','e','m','o','.','w','a','v',0};
-
-int giWavMode = 0;//xFF;
+static const unsigned short NAME[] = {'\\','\\','f','l','s','0','\\','D','e','m','o','.','w','a','v',0};
 
 static unsigned char *gpBuffer;
 static int giLength;
-static int giBufIndex = 0;
-static int giTableIndex = 0;
-static int giFromHighTab = 0;
+static int giBufIndex;
 static const unsigned char ptab[]={0,1,3,7,15,31,63,127};
 static void AudioSender(void)
 {
