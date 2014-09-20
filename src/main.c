@@ -5,7 +5,7 @@
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //The whole sound doesn't fit onto the RAM.
-//Reading per partes is not possible as this is synchronnous player (there would be silences when reading).
+//Reading per parts is not possible as this is synchronous player (there would be silences when reading).
 //So I read each page (4KB)of the wav file and try to find it in the flash. 
 //Simply finding start of the file is not enough because of fragmentation.
 
@@ -181,12 +181,9 @@ static const unsigned char ptab[]={0,1,3,7,15,31,63,127};
 static void AudioSender(void)
 {
 	for(;;){
-		//it has only 16 B fifo :-(
-		unsigned samp=gpBuffer[giBufIndex++]>>3;
-		if(giBufIndex>=giLength)
-			return;
+		unsigned samp=gpBuffer[giBufIndex++];
 		unsigned x;
-		for(x=0;x<4;++x){
+		for(x=0;x<32;++x){
 			if(samp>7){
 				SCIF2.SCFTDR=255;
 				samp-=8;
@@ -196,6 +193,8 @@ static void AudioSender(void)
 			}
 			while((SCIF2.SCFDR.WORD >> 8)>=15);
 		}
+		if(giBufIndex>=giLength)
+			return;
 	}
 }
 
@@ -210,9 +209,8 @@ static int ComOpen()
 		//SCIF2.SCSMR.BIT.SRC = 1;//1/5 (for 9860)
 
 	//it has no SRC register (comparing to fx9860G), so actual speed is only ~ 460800
-	//SCIF2.SCSMR.BIT.SRC = 0;//1/16 (for 9860)
 	SCIF2.SCSMR.BIT.CKS = 0;//1/1 
-		//SCIF2.SCBRR = 2;//!override speed to 1959390 bps (for 9860)
+	SCIF2.SCSMR.BIT.CA=1;//Synchronous mode is 16 times faster
 	SCIF2.SCBRR = 0;//!override speed to 1836000 bps (for 9860)
 	return  0;
 }
